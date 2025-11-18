@@ -14,7 +14,7 @@
 					<mat-option *ngFor="let c of categories" [value]="c">{{ c }}</mat-option>
 				</mat-select>
 			</mat-form-field>
-			<input type="file" (change)="onFile($event)" class="block" />
+			<input #fileInput type="file" (change)="onFile($event)" class="block" />
 			<button mat-flat-button color="primary" type="submit" [disabled]="!fileToUpload || !selectedEmployeeId">
 				Upload
 			</button>
@@ -55,5 +55,3 @@
 		</table>
 	</div>
 </div>
-
-
