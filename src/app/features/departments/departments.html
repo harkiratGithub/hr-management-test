@@ -1,0 +1,38 @@
+<div class="p-6 space-y-4">
+	<div class="flex items-center justify-between">
+		<h2 class="text-xl font-semibold">Departments</h2>
+		<div class="flex gap-2">
+			<mat-form-field appearance="outline">
+				<mat-label>New Department</mat-label>
+				<input matInput [(ngModel)]="newDeptName" />
+			</mat-form-field>
+			<button mat-flat-button color="primary" (click)="add()">Add</button>
+		</div>
+	</div>
+
+	<div class="bg-white shadow rounded">
+		<table class="min-w-full">
+			<thead class="bg-gray-50">
+				<tr class="text-left">
+					<th class="p-3">Department</th>
+					<th class="p-3">Employees</th>
+					<th class="p-3"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let d of departments()" class="border-t">
+					<td class="p-3">
+						<input class="border rounded px-2 py-1" [(ngModel)]="d.name" />
+					</td>
+					<td class="p-3">{{ countEmployees(d.name) }}</td>
+					<td class="p-3 text-right space-x-2">
+						<button mat-stroked-button color="primary" (click)="save(d)">Save</button>
+						<button mat-stroked-button color="warn" (click)="remove(d)">Delete</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+

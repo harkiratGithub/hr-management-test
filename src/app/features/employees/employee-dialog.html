@@ -1,0 +1,55 @@
+<h2 mat-dialog-title>{{ data.employee ? 'Edit Employee' : 'Add Employee' }}</h2>
+<form [formGroup]="form" (ngSubmit)="save()" class="p-4 space-y-3">
+	<mat-form-field appearance="outline" class="w-full">
+		<mat-label>Name</mat-label>
+		<input matInput formControlName="name" />
+	</mat-form-field>
+
+	<mat-form-field appearance="outline" class="w-full">
+		<mat-label>Email</mat-label>
+		<input matInput formControlName="email" type="email" />
+	</mat-form-field>
+
+	<mat-form-field appearance="outline" class="w-full">
+		<mat-label>Role</mat-label>
+		<mat-select formControlName="role">
+			<mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
+		</mat-select>
+	</mat-form-field>
+
+	<mat-form-field appearance="outline" class="w-full">
+		<mat-label>Department</mat-label>
+		<mat-select formControlName="department">
+			<mat-option *ngFor="let d of departments()" [value]="d.name">{{ d.name }}</mat-option>
+		</mat-select>
+	</mat-form-field>
+
+	<mat-form-field appearance="outline" class="w-full">
+		<mat-label>Status</mat-label>
+		<mat-select formControlName="status">
+			<mat-option value="Active">Active</mat-option>
+			<mat-option value="On Leave">On Leave</mat-option>
+			<mat-option value="Inactive">Inactive</mat-option>
+		</mat-select>
+	</mat-form-field>
+
+	<mat-form-field appearance="outline" class="w-full">
+		<mat-label>Joining Date</mat-label>
+		<input
+			matInput
+			[matDatepicker]="picker"
+			formControlName="joiningDate"
+			(focus)="picker.open()"
+			(click)="picker.open()"
+		/>
+		<mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+		<mat-datepicker #picker></mat-datepicker>
+	</mat-form-field>
+
+	<div class="flex justify-end gap-2 pt-2">
+		<button mat-stroked-button mat-dialog-close type="button">Cancel</button>
+		<button mat-flat-button color="primary" [disabled]="form.invalid">Save</button>
+	</div>
+</form>
+
+

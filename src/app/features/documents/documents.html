@@ -1,0 +1,59 @@
+<div class="p-6 space-y-6">
+	<div class="flex items-center justify-between">
+		<h2 class="text-xl font-semibold">Documents</h2>
+		<form class="flex items-center gap-3" (submit)="upload($event)">
+			<mat-form-field appearance="outline">
+				<mat-label>Employee</mat-label>
+				<mat-select [(ngModel)]="selectedEmployeeId" name="employeeId" required>
+					<mat-option *ngFor="let e of employees()" [value]="e.id">{{ e.name }}</mat-option>
+				</mat-select>
+			</mat-form-field>
+			<mat-form-field appearance="outline">
+				<mat-label>Category</mat-label>
+				<mat-select [(ngModel)]="category" name="category">
+					<mat-option *ngFor="let c of categories" [value]="c">{{ c }}</mat-option>
+				</mat-select>
+			</mat-form-field>
+			<input type="file" (change)="onFile($event)" class="block" />
+			<button mat-flat-button color="primary" type="submit" [disabled]="!fileToUpload || !selectedEmployeeId">
+				Upload
+			</button>
+		</form>
+	</div>
+
+	<div class="bg-white shadow rounded">
+		<table class="min-w-full">
+			<thead class="bg-gray-50">
+				<tr class="text-left">
+					<th class="p-3">Employee</th>
+					<th class="p-3">Category</th>
+					<th class="p-3">File</th>
+					<th class="p-3">Uploaded</th>
+					<th class="p-3"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let d of documents()" class="border-t">
+					<td class="p-3">{{ d.employeeName }}</td>
+					<td class="p-3">{{ d.category }}</td>
+					<td class="p-3">{{ d.fileName }}</td>
+					<td class="p-3">{{ d.uploadedAt | date: 'short' }}</td>
+					<td class="p-3 text-right space-x-2">
+						<a mat-stroked-button color="primary" [href]="safeUrl(d.fileUrl)" rel="noopener" target="_blank">
+							Preview
+						</a>
+						<a mat-stroked-button [attr.download]="d.fileName" [href]="safeUrl(d.fileUrl)" rel="noopener">
+							Download
+						</a>
+						<button mat-stroked-button color="warn" (click)="remove(d)">Delete</button>
+					</td>
+				</tr>
+				<tr *ngIf="documents().length === 0">
+					<td class="p-4 text-center text-gray-500" colspan="5">No documents uploaded yet.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+

@@ -1,0 +1,62 @@
+<div class="p-6 space-y-6">
+	<h2 class="text-2xl font-semibold">Overview</h2>
+
+	<!-- Filters -->
+	<div class="bg-white shadow rounded p-4 flex flex-col md:flex-row gap-4 items-start md:items-end">
+		<mat-form-field appearance="outline" class="min-w-[220px]">
+			<mat-label>Department</mat-label>
+			<mat-select [value]="selectedDepartment()" (selectionChange)="setDepartment($event.value)">
+				<mat-option *ngFor="let d of departmentOptions()" [value]="d">
+					{{ d === 'all' ? 'All Departments' : d }}
+				</mat-option>
+			</mat-select>
+		</mat-form-field>
+
+		<mat-form-field appearance="outline" class="min-w-[220px]">
+			<mat-label>Role</mat-label>
+			<mat-select [value]="selectedRole()" (selectionChange)="setRole($event.value)">
+				<mat-option *ngFor="let r of roleOptions()" [value]="r">
+					{{ r === 'all' ? 'All Roles' : r }}
+				</mat-option>
+			</mat-select>
+		</mat-form-field>
+
+		<button mat-stroked-button color="primary" (click)="resetFilters()">Reset</button>
+	</div>
+
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+		<div class="bg-white shadow rounded p-4">
+			<div class="text-sm text-gray-500">Total Employees</div>
+			<div class="text-3xl font-bold">{{ totals().employees }}</div>
+		</div>
+		<div class="bg-white shadow rounded p-4">
+			<div class="text-sm text-gray-500">Total Applicants</div>
+			<div class="text-3xl font-bold">{{ totals().applicants }}</div>
+		</div>
+		<div class="bg-white shadow rounded p-4">
+			<div class="text-sm text-gray-500">Departments</div>
+			<div class="text-3xl font-bold">{{ totals().departments }}</div>
+		</div>
+		<div class="bg-white shadow rounded p-4">
+			<div class="text-sm text-gray-500">Active Roles</div>
+			<div class="text-3xl font-bold">{{ totals().roles }}</div>
+		</div>
+	</div>
+
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+		<div class="bg-white shadow rounded p-4">
+			<h3 class="text-lg font-medium mb-2">Employees by Department</h3>
+			<div style="height:300px">
+				<canvas #deptChart></canvas>
+			</div>
+		</div>
+		<div class="bg-white shadow rounded p-4">
+			<h3 class="text-lg font-medium mb-2">Applicants by Role</h3>
+			<div style="height:300px">
+				<canvas #roleChart></canvas>
+			</div>
+		</div>
+	</div>
+</div>
+
+

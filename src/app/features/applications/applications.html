@@ -1,0 +1,62 @@
+<div class="p-6 space-y-4">
+	<div class="flex items-center justify-between">
+		<h2 class="text-xl font-semibold">Job Applications</h2>
+	</div>
+
+	<div class="grid gap-2 grid-cols-1 md:grid-cols-3">
+		<mat-form-field appearance="outline">
+			<mat-label>Role</mat-label>
+			<mat-select [(ngModel)]="filterRole">
+				<mat-option [value]="''">All</mat-option>
+				<mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
+			</mat-select>
+		</mat-form-field>
+		<mat-form-field appearance="outline">
+			<mat-label>Status</mat-label>
+			<mat-select [(ngModel)]="filterStatus">
+				<mat-option [value]="''">All</mat-option>
+				<mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
+			</mat-select>
+		</mat-form-field>
+		<mat-form-field appearance="outline">
+			<mat-label>Search by name</mat-label>
+			<input matInput [(ngModel)]="searchText" placeholder="Type name..." />
+		</mat-form-field>
+	</div>
+
+	<div class="bg-white shadow rounded">
+		<table class="min-w-full">
+			<thead class="bg-gray-50">
+				<tr class="text-left">
+					<th class="p-3">Name</th>
+					<th class="p-3">Role</th>
+					<th class="p-3">Experience</th>
+					<th class="p-3">Status</th>
+					<th class="p-3">Contact</th>
+					<th class="p-3"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let a of filtered()" class="border-t">
+					<td class="p-3">{{ a.name }}</td>
+					<td class="p-3">{{ a.role }}</td>
+					<td class="p-3">{{ a.experienceYears }} yrs</td>
+					<td class="p-3">
+						<mat-select [value]="a.status" (valueChange)="updateStatus(a, $event)">
+							<mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
+						</mat-select>
+					</td>
+					<td class="p-3">
+						<div class="text-sm">{{ a.email }}</div>
+						<div class="text-xs text-gray-500">{{ a.contact }}</div>
+					</td>
+					<td class="p-3 text-right">
+						<a mat-stroked-button color="primary" [href]="a.resumeUrl" target="_blank">Resume</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+

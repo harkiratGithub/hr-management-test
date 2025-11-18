@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global theme helpers */
+:root {
+	--primary: #1976d2;
+	--accent: #9c27b0;
+	--warn: #d32f2f;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: Inter, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans',
+		sans-serif;
+	background-color: #f7f7fb;
+}

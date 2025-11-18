@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "email": "owner@company.com",
+    "password": "owner123",
+    "role": "SuperAdmin",
+    "name": "Company Owner"
+  },
+  {
+    "id": 2,
+    "email": "hr@company.com",
+    "password": "hr123",
+    "role": "HR",
+    "name": "HR User"
+  }
+]
+

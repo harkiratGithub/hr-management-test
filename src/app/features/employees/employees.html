@@ -1,0 +1,63 @@
+<div class="p-6 space-y-4">
+	<div class="flex items-center justify-between">
+		<h2 class="text-xl font-semibold">Employees</h2>
+		<button mat-flat-button color="primary" (click)="openCreate()">Add Employee</button>
+	</div>
+
+	<div class="grid gap-2 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+		<mat-form-field appearance="outline">
+			<mat-label>Search by name</mat-label>
+			<input matInput [(ngModel)]="searchText" placeholder="Type name..." />
+		</mat-form-field>
+
+		<mat-form-field appearance="outline">
+			<mat-label>Department</mat-label>
+			<mat-select [(ngModel)]="filterDept">
+				<mat-option [value]="''">All</mat-option>
+				<mat-option *ngFor="let d of departments()" [value]="d.name">{{ d.name }}</mat-option>
+			</mat-select>
+		</mat-form-field>
+
+		<mat-form-field appearance="outline">
+			<mat-label>Role</mat-label>
+			<mat-select [(ngModel)]="filterRole">
+				<mat-option [value]="''">All</mat-option>
+				<mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+
+	<div class="bg-white shadow rounded">
+		<table class="min-w-full">
+			<thead class="bg-gray-50">
+				<tr class="text-left">
+					<th class="p-3">Name</th>
+					<th class="p-3">Role</th>
+					<th class="p-3">Department</th>
+					<th class="p-3">Joining</th>
+					<th class="p-3">Status</th>
+					<th class="p-3"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let e of filteredEmployees()" class="border-t">
+					<td class="p-3">{{ e.name }}</td>
+					<td class="p-3">{{ e.role }}</td>
+					<td class="p-3">{{ e.department }}</td>
+					<td class="p-3">{{ e.joiningDate | date }}</td>
+					<td class="p-3">
+						<span class="px-2 py-1 rounded text-xs" [ngClass]="statusClass(e.status)">
+							{{ e.status }}
+						</span>
+					</td>
+					<td class="p-3 text-right space-x-2">
+						<button mat-stroked-button color="primary" (click)="openEdit(e)">Edit</button>
+						<button mat-stroked-button color="warn" (click)="remove(e)">Delete</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
+
