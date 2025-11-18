@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -60,6 +60,8 @@ export default class DocumentsComponent implements OnInit {
 			this.fileToUpload = null;
 			this.category = '';
 			this.selectedEmployeeId = null;
+			// Clear the file input control UI label ("No file chosen")
+			if (this.fileInput?.nativeElement) this.fileInput.nativeElement.value = '';
 			this.load();
 		});
 	}
@@ -87,6 +89,6 @@ export default class DocumentsComponent implements OnInit {
 	safeUrl(url: string): SafeUrl {
 		return this.sanitizer.bypassSecurityTrustResourceUrl(url);
 	}
+
+	@ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 }
-
-
