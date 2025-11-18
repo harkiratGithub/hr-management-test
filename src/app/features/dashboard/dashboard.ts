@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, computed, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Chart from 'chart.js/auto';
 import { Department } from '../../core/models/department.model';
@@ -17,7 +17,7 @@ const API_BASE = '/api';
 	imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatButtonModule],
 	templateUrl: './dashboard.html',
 })
-export default class DashboardComponent implements OnInit {
+export default class DashboardComponent implements OnInit, AfterViewInit {
 	private readonly data = inject(DataService);
 
 	@ViewChild('deptChart', { static: false }) deptChartRef?: ElementRef<HTMLCanvasElement>;
@@ -61,9 +61,17 @@ export default class DashboardComponent implements OnInit {
 
 	private deptChart?: Chart;
 	private roleChart?: Chart;
+	private viewReady = false;
 
 	ngOnInit(): void {
 		this.loadData();
+	}
+
+	ngAfterViewInit(): void {
+		this.viewReady = true;
+		// Draw once view is ready with whatever data is loaded
+		this.drawDeptBar();
+		this.drawRolePie();
 	}
 
 	private loadData(): void {
@@ -89,6 +97,8 @@ export default class DashboardComponent implements OnInit {
 		}
 		const labels = Array.from(counts.keys());
 		const data = Array.from(counts.values());
+		// Ensure canvas exists (view initialized) before attempting to draw
+		if (!this.viewReady && !this.deptChartRef?.nativeElement) return;
 		if (this.deptChart) {
 			this.deptChart.data.labels = labels;
 			this.deptChart.data.datasets[0].data = data;
@@ -112,6 +122,8 @@ export default class DashboardComponent implements OnInit {
 		}
 		const labels = Array.from(counts.keys());
 		const data = Array.from(counts.values());
+		// Ensure canvas exists (view initialized) before attempting to draw
+		if (!this.viewReady && !this.roleChartRef?.nativeElement) return;
 		if (this.roleChart) {
 			this.roleChart.data.labels = labels;
 			this.roleChart.data.datasets[0].data = data;
@@ -146,5 +158,3 @@ export default class DashboardComponent implements OnInit {
 		this.drawRolePie();
 	}
 }
-
-
