@@ -19,6 +19,8 @@ const LS_KEYS = {
 	departments: 'erd_departments',
 	documents: 'erd_documents',
 } as const;
+	
+	const API_BASE = '/api';
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -69,68 +71,108 @@ export class DataService {
 
 	// Employees
 	getEmployees(): Observable<Employee[]> {
-		return this.ensureSeed().pipe(
-			map(() => JSON.parse(localStorage.getItem(LS_KEYS.employees) ?? '[]') as Employee[])
+		// Request a high limit so dashboard aggregates include all records
+		return this.http.get<any>(`${API_BASE}/employees?limit=10000`).pipe(
+			map((res) => (Array.isArray(res) ? res : res?.data ?? [])),
+			map((list: any[]) =>
+				(list ?? []).map((e: any, idx: number) => ({
+					id: String(e?._id ?? e?.id ?? idx + 1),
+					name: String(e?.name ?? ''),
+					role: String(e?.role ?? ''),
+					department: String(e?.department ?? ''),
+					joiningDate: String(e?.joiningDate ?? e?.joining_date ?? new Date().toISOString()),
+					status: (String(e?.status ?? 'active').toLowerCase() === 'on-leave'
+						? 'On Leave'
+						: String(e?.status ?? 'active').toLowerCase() === 'inactive'
+						? 'Inactive'
+						: 'Active') as Employee['status'],
+					email: String(e?.email ?? ''),
+				}))
+			)
 		);
 	}
 	saveEmployee(employee: Employee): Observable<void> {
-		const list = JSON.parse(localStorage.getItem(LS_KEYS.employees) ?? '[]') as Employee[];
-		if (employee.id) {
-			const idx = list.findIndex((e) => e.id === employee.id);
-			if (idx >= 0) list[idx] = employee;
-		} else {
-			const nextId = (list.at(-1)?.id ?? 0) + 1;
-			list.push({ ...employee, id: nextId });
-		}
-		localStorage.setItem(LS_KEYS.employees, JSON.stringify(list));
-		return of(void 0);
+		const hasId =
+			typeof employee.id === 'string' ? employee.id.trim().length > 0 : !!employee.id;
+		// Map UI status to backend enum
+		const statusApi =
+			employee.status === 'On Leave' ? 'on-leave' : employee.status === 'Inactive' ? 'inactive' : 'active';
+		const payload = { ...employee, id: undefined, status: statusApi };
+		const req$ = hasId
+			? this.http.put(`${API_BASE}/employees/${employee.id}`, payload)
+			: this.http.post(`${API_BASE}/employees`, payload);
+		return req$.pipe(map(() => void 0));
 	}
-	deleteEmployee(id: number): Observable<void> {
-		const list = (JSON.parse(localStorage.getItem(LS_KEYS.employees) ?? '[]') as Employee[]).filter(
-			(e) => e.id !== id
-		);
-		localStorage.setItem(LS_KEYS.employees, JSON.stringify(list));
-		return of(void 0);
+	deleteEmployee(id: string | number): Observable<void> {
+		return this.http.delete(`${API_BASE}/employees/${id}`).pipe(map(() => void 0));
 	}
 
 	// Applications
 	getApplications(): Observable<JobApplication[]> {
-		return this.ensureSeed().pipe(
-			map(() => JSON.parse(localStorage.getItem(LS_KEYS.applications) ?? '[]') as JobApplication[])
+		// Request a high limit so dashboard aggregates include all records
+		return this.http.get<any>(`${API_BASE}/applicants?limit=10000`).pipe(
+			map((res) => (Array.isArray(res) ? res : res?.data ?? [])),
+			map((list: any[]): JobApplication[] =>
+				(list ?? []).map((a: any, idx: number) => {
+					// Normalize role to match JobApplication['role'] union
+					const rawRole = String(a?.role ?? a?.appliedRole ?? '').toLowerCase();
+					const role: JobApplication['role'] =
+						rawRole.includes('front')
+							? 'Frontend Developer'
+							: rawRole.includes('back')
+							? 'Backend Developer'
+							: rawRole.includes('test') || rawRole.includes('qa')
+							? 'Tester'
+							: 'Business Analyst';
+
+					// Normalize status to match ApplicationStatus union
+					const rawStatus = String(a?.status ?? '').toLowerCase();
+					const status: ApplicationStatus =
+						rawStatus === 'shortlisted'
+							? 'Shortlisted'
+							: rawStatus === 'rejected'
+							? 'Rejected'
+							: 'New';
+
+					return {
+						id: Number(a?.id ?? a?._id ?? idx + 1),
+						name: String(a?.name ?? ''),
+						role,
+						experienceYears: Number(a?.experienceYears ?? a?.experience_years ?? 0),
+						status,
+						email: String(a?.email ?? ''),
+						contact: String(a?.contact ?? ''),
+						resumeUrl: String(a?.resumeUrl ?? a?.resume_url ?? ''),
+					} satisfies JobApplication;
+				})
+			)
 		);
 	}
 	updateApplicationStatus(id: number, status: ApplicationStatus): Observable<void> {
-		const list = JSON.parse(localStorage.getItem(LS_KEYS.applications) ?? '[]') as JobApplication[];
-		const idx = list.findIndex((a) => a.id === id);
-		if (idx >= 0) list[idx] = { ...list[idx], status };
-		localStorage.setItem(LS_KEYS.applications, JSON.stringify(list));
-		return of(void 0);
+		return this.http.put(`${API_BASE}/applicants/${id}/status`, { status }).pipe(map(() => void 0));
 	}
 
 	// Departments
 	getDepartments(): Observable<Department[]> {
-		return this.ensureSeed().pipe(
-			map(() => JSON.parse(localStorage.getItem(LS_KEYS.departments) ?? '[]') as Department[])
+		return this.http.get<any[]>(`${API_BASE}/departments`).pipe(
+			map((list) =>
+				(list ?? []).map((d: any, idx: number) => ({
+					id: Number(d?.id ?? d?._id ?? idx + 1),
+					name: String(d?.name ?? ''),
+				}))
+			)
 		);
 	}
 	saveDepartment(dept: Department): Observable<void> {
-		const list = JSON.parse(localStorage.getItem(LS_KEYS.departments) ?? '[]') as Department[];
-		if (dept.id) {
-			const idx = list.findIndex((d) => d.id === dept.id);
-			if (idx >= 0) list[idx] = dept;
-		} else {
-			const nextId = (list.at(-1)?.id ?? 0) + 1;
-			list.push({ ...dept, id: nextId });
-		}
-		localStorage.setItem(LS_KEYS.departments, JSON.stringify(list));
-		return of(void 0);
+		const hasId = !!dept.id;
+		const payload = { ...dept, id: undefined };
+		const req$ = hasId
+			? this.http.put(`${API_BASE}/departments/${dept.id}`, payload)
+			: this.http.post(`${API_BASE}/departments`, payload);
+		return req$.pipe(map(() => void 0));
 	}
 	deleteDepartment(id: number): Observable<void> {
-		const list = (JSON.parse(localStorage.getItem(LS_KEYS.departments) ?? '[]') as Department[]).filter(
-			(d) => d.id !== id
-		);
-		localStorage.setItem(LS_KEYS.departments, JSON.stringify(list));
-		return of(void 0);
+		return this.http.delete(`${API_BASE}/departments/${id}`).pipe(map(() => void 0));
 	}
 
 	// Documents

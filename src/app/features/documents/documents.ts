@@ -27,9 +27,13 @@ export default class DocumentsComponent implements OnInit {
 	employees = signal<Employee[]>([]);
 	documents = signal<DocumentRecord[]>([]);
 
-	selectedEmployeeId: number | null = null;
+	selectedEmployeeId: string | null = null;
 	category = '';
 	fileToUpload: File | null = null;
+
+	// Pagination
+	page = 1;
+	pageSize = 10;
 
 	readonly categories: string[] = ['Resume', 'Offer Letter', 'ID Proof', 'Payslip', 'Other'];
 
@@ -45,7 +49,7 @@ export default class DocumentsComponent implements OnInit {
 	async upload(event: Event): Promise<void> {
 		event.preventDefault();
 		if (!this.fileToUpload || !this.selectedEmployeeId) return;
-		const employee = this.employees().find((e) => e.id === this.selectedEmployeeId)!;
+		const employee = this.employees().find((e) => String(e.id) === String(this.selectedEmployeeId))!;
 		// Persist a Data URL so preview/download works across reloads and deployments
 		const fileUrl = await this.readFileAsDataUrl(this.fileToUpload);
 		const payload: Omit<DocumentRecord, 'id'> = {
@@ -80,8 +84,50 @@ export default class DocumentsComponent implements OnInit {
 		this.data.deleteDocument(d.id).subscribe(() => this.load());
 	}
 
+	pagedDocuments(): DocumentRecord[] {
+		const list = this.documents();
+		const totalPages = Math.max(1, Math.ceil(list.length / this.pageSize));
+		if (this.page > totalPages) this.page = totalPages;
+		const start = (this.page - 1) * this.pageSize;
+		return list.slice(start, start + this.pageSize);
+	}
+
+	totalPages(): number {
+		return Math.max(1, Math.ceil(this.documents().length / this.pageSize));
+	}
+
+	nextPage(): void {
+		if (this.page < this.totalPages()) this.page++;
+	}
+
+	prevPage(): void {
+		if (this.page > 1) this.page--;
+	}
+
+	openPreview(d: DocumentRecord): void {
+		try {
+			const [meta, base64] = d.fileUrl.split(',');
+			const mimeMatch = /data:(.*?);base64/.exec(meta);
+			const mime = mimeMatch?.[1] ?? 'application/octet-stream';
+			const byteChars = atob(base64);
+			const byteNumbers = new Array(byteChars.length);
+			for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+			const blob = new Blob([new Uint8Array(byteNumbers)], { type: mime });
+			const url = URL.createObjectURL(blob);
+			window.open(url, '_blank', 'noopener');
+			// Caller tab may navigate away; revoke shortly after
+			setTimeout(() => URL.revokeObjectURL(url), 30_000);
+		} catch {
+			// fallback: navigate current tab
+			window.location.href = d.fileUrl;
+		}
+	}
+
 	private load(): void {
-		this.data.getEmployees().subscribe((res) => this.employees.set(res));
+		this.data.getEmployees().subscribe((res) => {
+			this.employees.set(res);
+			// Do not auto-select any employee; user must choose explicitly
+		});
 		this.data.getDocuments().subscribe((res) => this.documents.set(res));
 	}
 
@@ -91,4 +137,9 @@ export default class DocumentsComponent implements OnInit {
 	}
 
 	@ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
+
+	// UI helpers
+	canUpload(): boolean {
+		return !!this.fileToUpload && !!this.selectedEmployeeId;
+	}
 }

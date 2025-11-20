@@ -37,7 +37,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr *ngFor="let a of filtered()" class="border-t">
+				<tr *ngFor="let a of paged()" class="border-t">
 					<td class="p-3">{{ a.name }}</td>
 					<td class="p-3">{{ a.role }}</td>
 					<td class="p-3">{{ a.experienceYears }} yrs</td>
@@ -56,6 +56,12 @@
 				</tr>
 			</tbody>
 		</table>
+	</div>
+
+	<div class="flex items-center justify-end gap-3 pt-3">
+		<button mat-stroked-button (click)="prevPage()" [disabled]="page === 1">Prev</button>
+		<div class="text-sm">Page {{ page }} of {{ totalPages() }}</div>
+		<button mat-stroked-button (click)="nextPage()" [disabled]="page >= totalPages()">Next</button>
 	</div>
 </div>
 

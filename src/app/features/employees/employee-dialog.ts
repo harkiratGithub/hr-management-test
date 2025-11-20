@@ -47,7 +47,7 @@ export class EmployeeDialogComponent implements OnInit {
 	];
 
 	form = this.fb.group({
-		id: [0],
+		id: [''],
 		name: ['', Validators.required],
 		email: ['', [Validators.required, Validators.email]],
 		role: ['', Validators.required],
@@ -66,7 +66,12 @@ export class EmployeeDialogComponent implements OnInit {
 		if (this.data?.employee) {
 			const { joiningDate, ...rest } = this.data.employee;
 			const jd = joiningDate ? new Date(joiningDate) : null;
-			this.form.patchValue({ ...rest, joiningDate: jd });
+			this.form.patchValue({
+				...rest,
+				// Ensure the reactive form receives a string id
+				id: String((rest as any).id ?? ''),
+				joiningDate: jd,
+			});
 		}
 	}
 

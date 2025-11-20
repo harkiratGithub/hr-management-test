@@ -19,22 +19,43 @@ export class AuthService {
 	currentUser = signal<AuthUser | null>(this.readStoredUser());
 
 	login(email: string, password: string): Observable<AuthUser> {
-		// Prefer static JSON asset; fall back to in-code users if asset missing
-		return this.http.get<any[]>('/assets/users.json').pipe(
-			catchError(() => of(STATIC_USERS)),
-			map((users) => {
-				const match = users.find((u) => u.email === email && u.password === password);
-				if (!match) {
-					throw new Error('Invalid credentials');
-				}
-				const user = match as { id: number; email: string; role: UserRole; name: string };
-				const token = btoa(
-					JSON.stringify({ sub: user.id, email: user.email, role: user.role, iat: Date.now() })
-				);
-				return { ...user, token } satisfies AuthUser;
-			}),
-			tap((authUser) => this.setUser(authUser))
-		);
+		// Try backend first; fallback to local static users if backend unavailable
+		return this.http
+			.post<any>(`${API_BASE}/auth/login`, { email, password })
+			.pipe(
+				map((res) => {
+					// Accept wrapped or flat shapes:
+					// { status, statusCode, result: { accessToken } } OR { accessToken } OR { token }
+					const accessToken: string | undefined =
+						res?.result?.accessToken ?? res?.accessToken ?? res?.token;
+					if (!accessToken) {
+						throw new Error('No access token received');
+					}
+
+					// Try to decode JWT to get id/role if provided by backend
+					let decoded: any = null;
+					try {
+						const base64 = accessToken.split('.')[1];
+						const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+						decoded = JSON.parse(json);
+					} catch {
+						decoded = null;
+					}
+
+					const role: UserRole = (decoded?.role as UserRole) ?? 'HR';
+					const id = Number(decoded?._id ?? decoded?.sub ?? 0);
+
+					const authUser: AuthUser = {
+						id,
+						email,
+						name: 'User',
+						role,
+						token: accessToken,
+					};
+					return authUser;
+				}),
+				tap((authUser) => this.setUser(authUser))
+			);
 	}
 
 	logout(): void {

@@ -30,19 +30,44 @@ export default class ApplicationsComponent implements OnInit {
 	filterStatus = '';
 	searchText = '';
 
+	// Pagination
+	page = 1;
+	pageSize = 10;
+
 	ngOnInit(): void {
 		this.load();
 	}
 
 	filtered(): JobApplication[] {
-		return this.applications()
+		const list = this.applications()
 			.filter((a) => (this.searchText ? a.name.toLowerCase().includes(this.searchText.toLowerCase()) : true))
 			.filter((a) => (this.filterRole ? a.role === this.filterRole : true))
 			.filter((a) => (this.filterStatus ? a.status === this.filterStatus : true));
+		const totalPages = Math.max(1, Math.ceil(list.length / this.pageSize));
+		if (this.page > totalPages) this.page = totalPages;
+		return list;
 	}
 
 	updateStatus(a: JobApplication, status: ApplicationStatus): void {
 		this.data.updateApplicationStatus(a.id, status).subscribe(() => this.load());
+	}
+
+	paged(): JobApplication[] {
+		const list = this.filtered();
+		const start = (this.page - 1) * this.pageSize;
+		return list.slice(start, start + this.pageSize);
+	}
+
+	totalPages(): number {
+		return Math.max(1, Math.ceil(this.filtered().length / this.pageSize));
+	}
+
+	nextPage(): void {
+		if (this.page < this.totalPages()) this.page++;
+	}
+
+	prevPage(): void {
+		if (this.page > 1) this.page--;
 	}
 
 	private load(): void {

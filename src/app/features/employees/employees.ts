@@ -49,22 +49,48 @@ export default class EmployeesComponent implements OnInit {
 	filterDept = '';
 	filterRole = '';
 
+	// Pagination
+	page = 1;
+	pageSize = 10;
+
 	ngOnInit(): void {
 		this.load();
 	}
 
 	filteredEmployees(): Employee[] {
-		return this.employees()
+		const list = this.employees()
 			.filter((e) => (this.searchText ? e.name.toLowerCase().includes(this.searchText.toLowerCase()) : true))
 			.filter((e) => (this.filterDept ? e.department === this.filterDept : true))
 			.filter((e) => (this.filterRole ? e.role === this.filterRole : true));
+		// Ensure current page is valid when filters change
+		const totalPages = Math.max(1, Math.ceil(list.length / this.pageSize));
+		if (this.page > totalPages) this.page = totalPages;
+		return list;
+	}
+
+	paginatedEmployees(): Employee[] {
+		const list = this.filteredEmployees();
+		const start = (this.page - 1) * this.pageSize;
+		return list.slice(start, start + this.pageSize);
+	}
+
+	totalPages(): number {
+		return Math.max(1, Math.ceil(this.filteredEmployees().length / this.pageSize));
+	}
+
+	nextPage(): void {
+		if (this.page < this.totalPages()) this.page++;
+	}
+
+	prevPage(): void {
+		if (this.page > 1) this.page--;
 	}
 
 	openCreate(): void {
 		this.dialog
 			.open(EmployeeDialogComponent, { data: {} })
 			.afterClosed()
-			.subscribe((changed) => changed && this.load());
+			.subscribe((changed) => changed && (this.page = 1, this.load()));
 	}
 
 	openEdit(_e: Employee): void {
